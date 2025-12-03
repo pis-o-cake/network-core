@@ -1,5 +1,7 @@
 package piece.of.cake.lib.networkcore.util
 
+import piece.of.cake.lib.networkcore.constants.ErrorCode
+import piece.of.cake.lib.networkcore.constants.ErrorMessage
 import piece.of.cake.lib.networkcore.model.BaseResponse
 import piece.of.cake.lib.networkcore.model.NetworkResult
 import retrofit2.Response
@@ -64,34 +66,36 @@ suspend fun <R : BaseResponse<*>> safeApiCallEmpty(
  * Handles response with data
  */
 private fun <T, R : BaseResponse<T>> handleResponse(response: Response<R>): NetworkResult<T> {
+    val httpCode = response.code()
+
     if (!response.isSuccessful) {
         return NetworkResult.Error(
-            httpCode = response.code(),
-            code = "HTTP_${response.code()}",
+            httpCode = httpCode,
+            code = "${ErrorCode.HTTP_PREFIX}$httpCode",
             message = response.message()
         )
     }
 
     val body = response.body()
         ?: return NetworkResult.Error(
-            httpCode = response.code(),
-            code = "EMPTY_BODY",
-            message = "Response body is null"
+            httpCode = httpCode,
+            code = ErrorCode.EMPTY_BODY,
+            message = ErrorMessage.RESPONSE_BODY_NULL
         )
 
     if (!body.isSuccess()) {
         return NetworkResult.Error(
-            httpCode = response.code(),
-            code = body.getErrorCode() ?: "UNKNOWN_ERROR",
+            httpCode = httpCode,
+            code = body.getErrorCode() ?: ErrorCode.UNKNOWN_ERROR,
             message = body.getMessage()
         )
     }
 
     val data = body.getData()
         ?: return NetworkResult.Error(
-            httpCode = response.code(),
-            code = "NULL_DATA",
-            message = body.getMessage() ?: "Success but data is null"
+            httpCode = httpCode,
+            code = ErrorCode.NULL_DATA,
+            message = body.getMessage() ?: ErrorMessage.SUCCESS_BUT_DATA_NULL
         )
 
     return NetworkResult.Success(data)
@@ -101,10 +105,12 @@ private fun <T, R : BaseResponse<T>> handleResponse(response: Response<R>): Netw
  * Handles response without data
  */
 private fun <R : BaseResponse<*>> handleEmptyResponse(response: Response<R>): NetworkResult<Unit> {
+    val httpCode = response.code()
+
     if (!response.isSuccessful) {
         return NetworkResult.Error(
-            httpCode = response.code(),
-            code = "HTTP_${response.code()}",
+            httpCode = httpCode,
+            code = "${ErrorCode.HTTP_PREFIX}$httpCode",
             message = response.message()
         )
     }
@@ -114,8 +120,8 @@ private fun <R : BaseResponse<*>> handleEmptyResponse(response: Response<R>): Ne
 
     if (!body.isSuccess()) {
         return NetworkResult.Error(
-            httpCode = response.code(),
-            code = body.getErrorCode() ?: "UNKNOWN_ERROR",
+            httpCode = httpCode,
+            code = body.getErrorCode() ?: ErrorCode.UNKNOWN_ERROR,
             message = body.getMessage()
         )
     }

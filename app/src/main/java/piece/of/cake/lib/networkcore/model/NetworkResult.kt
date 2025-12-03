@@ -80,11 +80,11 @@ sealed class NetworkResult<out T> {
      */
     fun getOrThrow(): T = when (this) {
         is Success -> data
-        is Empty -> throw IllegalStateException("Result is Empty, no data available")
-        is Error -> throw IllegalStateException("Result is Error: [$code] $message")
+        is Empty -> throw IllegalStateException(MESSAGE_EMPTY_NO_DATA)
+        is Error -> throw IllegalStateException("$MESSAGE_ERROR_PREFIX[$code] $message")
         is NetworkError -> throw exception
         is Exception -> throw throwable
-        is Loading -> throw IllegalStateException("Result is still Loading")
+        is Loading -> throw IllegalStateException(MESSAGE_STILL_LOADING)
     }
 
     /**
@@ -144,5 +144,11 @@ sealed class NetworkResult<out T> {
             action(this as NetworkResult<Nothing>)
         }
         return this
+    }
+
+    companion object {
+        private const val MESSAGE_EMPTY_NO_DATA = "Result is Empty, no data available"
+        private const val MESSAGE_ERROR_PREFIX = "Result is Error: "
+        private const val MESSAGE_STILL_LOADING = "Result is still Loading"
     }
 }
